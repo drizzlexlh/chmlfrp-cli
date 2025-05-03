@@ -19,7 +19,7 @@
 pip install chml
 ```
 ### 2.初始化
-需要在chmlfrp官网注册或登录账号后获取token
+需要在chmlfrp官网注册或登录账号后获取token\n
 官网地址:
 ```bash
 https://chmlfrp.cn/
