@@ -1,0 +1,58 @@
+[project]
+name = "chml"
+version = "0.0.5"
+description = "Frp client configuration and running tool."
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }  # 替换为你的信息
+]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["frp", "client", "configuration", "tunnel"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: System :: Networking",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "typer",
+    "rich",
+    "pyyaml",
+    "inquirerpy",
+    "httpx"
+]
+
+[project.scripts]
+chml = "chml.main:app"
+
+[tool.poetry]
+name = "chml"
+version = "0.0.5"
+description = "Frp client configuration and running tool."
+authors = [
+    "Your Name <your.email@example.com>"  # 替换为你的信息
+]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/your-username/chml"  # 替换为你的项目仓库地址
+repository = "https://github.com/your-username/chml" # 替换为你的项目仓库地址
+documentation = "https://your-project.readthedocs.io" #替换为你的项目文档地址
+
+packages = [
+    { include = "chml", from = "src" }
+]
+
+[tool.poetry.scripts] # 使用tool.poetry.scripts
+chml = "chml.main:app"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
