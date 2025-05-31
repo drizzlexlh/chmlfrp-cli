@@ -1,58 +1,26 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [project]
-name = "chml"
-version = "0.0.5"
-description = "Frp client configuration and running tool."
-authors = [
-    { name = "Your Name", email = "your.email@example.com" }  # 替换为你的信息
-]
-license = { text = "MIT" }
+name = "chmlfrp_cli"
+version = "0.1.0"
+description = "用于chmlfrp的cli工具"
 readme = "README.md"
-requires-python = ">=3.7"
-keywords = ["frp", "client", "configuration", "tunnel"]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "Topic :: System :: Networking",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-]
+authors = [{name = "purilin", email = "2896150207@qq.com"}]
+license = "MIT"
+
+[project.urls]
+repository = "https://github.com/drizzlexlh/chmlfrp-cli/"
+documentation = "https://github.com/drizzlexlh/chmlfrp-cli/#readme"
+
+requires-python = ">=3.11"
 dependencies = [
-    "typer",
-    "rich",
-    "pyyaml",
-    "inquirerpy",
-    "httpx"
+    "httpx>=0.28.1",
+    "inquirerpy>=0.3.4",
+    "rich>=14.0.0",
+    "typer>=0.16.0",
 ]
 
 [project.scripts]
-chml = "chml.main:app"
-
-[tool.poetry]
-name = "chml"
-version = "0.0.5"
-description = "Frp client configuration and running tool."
-authors = [
-    "Your Name <your.email@example.com>"  # 替换为你的信息
-]
-license = "MIT"
-readme = "README.md"
-homepage = "https://github.com/your-username/chml"  # 替换为你的项目仓库地址
-repository = "https://github.com/your-username/chml" # 替换为你的项目仓库地址
-documentation = "https://your-project.readthedocs.io" #替换为你的项目文档地址
-
-packages = [
-    { include = "chml", from = "src" }
-]
-
-[tool.poetry.scripts] # 使用tool.poetry.scripts
-chml = "chml.main:app"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+chml = "chmlfrp_cli.main:app"

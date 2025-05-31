@@ -1,0 +1,5 @@
+.venv/
+config.json
+dist/
+uv.lock
+app/
