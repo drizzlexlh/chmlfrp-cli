@@ -53,7 +53,7 @@ def download_chml():
     my_architecture = inquirer.select(message="请选择你的系统:", choices=[sys_architecture for sys_architecture in chmlfrp_app_download_data[my_system]]).execute()
     download_url = chmlfrp_app_download_data[my_system][my_architecture]
     
-    chml_zip_filename = f".{download_url[download_url.rfind("/"):]}"
+    chml_zip_filename = f".{download_url[download_url.rfind('/'):]}"
     
     if APP_PATH.exists():  #清空一次文件夹
         shutil.rmtree(APP_PATH)
@@ -205,9 +205,9 @@ def config():
     result_config_info_table.add_column("url", style="blue")
     for node in nodes[selected_node_name]:
         if not selected_tunnel_names:
-            result_config_info_table.add_row(node["name"], node["type"], str(node["nport"]), f"{node["ip"]}:{node["dorp"]}")
+            result_config_info_table.add_row(node["name"], node["type"], str(node["nport"]), f"{node['ip']}:{node['dorp']}")
         elif node["name"] in selected_tunnel_names:
-            result_config_info_table.add_row(node["name"], node["type"], str(node["nport"]), f"{node["ip"]}:{node["dorp"]}")
+            result_config_info_table.add_row(node["name"], node["type"], str(node["nport"]), f"{node['ip']}:{node['dorp']}")
             
     console.print(result_config_info_table)
     

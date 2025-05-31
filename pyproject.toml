@@ -9,11 +9,6 @@ description = "用于chmlfrp的cli工具"
 readme = "README.md"
 authors = [{name = "purilin", email = "2896150207@qq.com"}]
 license = "MIT"
-
-[project.urls]
-repository = "https://github.com/drizzlexlh/chmlfrp-cli/"
-documentation = "https://github.com/drizzlexlh/chmlfrp-cli/#readme"
-
 requires-python = ">=3.11"
 dependencies = [
     "httpx>=0.28.1",
@@ -21,6 +16,11 @@ dependencies = [
     "rich>=14.0.0",
     "typer>=0.16.0",
 ]
+
+[project.urls]
+repository = "https://github.com/drizzlexlh/chmlfrp-cli/"
+documentation = "https://github.com/drizzlexlh/chmlfrp-cli/#readme"
+
 
 [project.scripts]
 chml = "chmlfrp_cli.main:app"
