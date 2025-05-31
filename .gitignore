@@ -4,3 +4,4 @@ dist/
 uv.lock
 app/
 .gitignore
+.python-version
