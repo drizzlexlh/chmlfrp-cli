@@ -14,11 +14,28 @@
 
 ## 使用方法
 
+'''
+
 ### 1. 安装
 ```bash
-xxx
+git clone https://github.com/drizzlexlh/chmlfrp-cli.git
+cd chmlfrp-cli
+pip install .
 ```
-### 2.初始化
+### 2.启动
+```bash
+chml
+```
+#### 命令:
+```bash
+chml config   #配置隧道
+```
+```bash
+chml run   #启动！
+```
+```bash
+chml download   #下载chmlfrp！
+```
 需要在chmlfrp官网注册或登录账号后获取token  
 #### chmlfrp官网地址:
 ```bash
