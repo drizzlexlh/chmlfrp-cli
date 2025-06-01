@@ -9,21 +9,23 @@ import pathlib
 import tarfile, zipfile
 import shutil
 import subprocess
-
+import os, sys
 console = Console(color_system="256")
 app = Typer()
 
 
 #global
-APP_PATH = pathlib.Path("./app/")
+PROJECT_DIR=pathlib.Path(os.path.dirname(sys.argv[0]))
+APP_PATH = pathlib.Path(PROJECT_DIR / "chmlapp/")
 CHML_PATH = pathlib.Path(APP_PATH / "chmlfrp/")
 CHML_INI_FILE = CHML_PATH / "frpc.ini"
 CHML_FRP_FILE = CHML_PATH / "frpc"
-
-CONFIG_FILE = pathlib.Path("./config.json")
+CONFIG_FILE = pathlib.Path(PROJECT_DIR / "config.json")
 g_token = ""
 TUNNEL_INFO_URL = "https://cf-v2.uapis.cn/tunnel" #get请求 form参数 token
 TUNNEL_GETCONFIG_URL = "https://cf-v2.uapis.cn/tunnel_config" #form参数 token, node, [可选]tunnel_names
+TUNNEL_CREATE_URL = "https://cf-v2.uapis.cn/create_tunnel"
+TUNNEL_GETNODE_URL = "https://cf-v2.uapis.cn/node"
 
 chmlfrp_app_download_data = {
     "windows": {
@@ -215,8 +217,7 @@ def config():
 @app.command(name="run", help="启动！")
 def run():
     subprocess.run([CHML_FRP_FILE], cwd=CHML_PATH)
-    
-    
+    os.system()
     
     
     
