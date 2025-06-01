@@ -36,7 +36,11 @@ chml run   #启动！
 ```bash
 chml download   #下载chmlfrp！
 ```
-需要在chmlfrp官网注册或登录账号后获取token  
+```bash
+chml token #设置token
+```
+
+[注意]需要在chmlfrp官网注册或登录账号后获取token  
 #### chmlfrp官网地址:
 ```bash
 https://chmlfrp.cn/
