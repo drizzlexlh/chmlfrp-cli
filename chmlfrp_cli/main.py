@@ -78,15 +78,29 @@ def download_chml():
         exit(1)
     console.print("[green]下载完成！")
     
+    
+    console.print("[yellow]解压中...")
     unpackage_file = None
     if chml_zip_filename.endswith("zip"):
         unpackage_file = zipfile.ZipFile(chml_zip_filename)
     elif chml_zip_filename.endswith("tar.gz"):
         unpackage_file = tarfile.open(chml_zip_filename)
     
-    unpackage_file.extractall("./app/")
+    unpackage_file.extractall(APP_PATH)
     
     next(APP_PATH.iterdir(), None).rename(APP_PATH / "chmlfrp")
+    
+    unpackage_file.close()
+    console.print("[green]解压完成！")
+    os.remove(chml_zip_filename)
+    
+
+def set_token():
+    g_token = console.input("[green]请输入你的[red]token[white]:")
+    data = {"token": g_token}
+    with open(CONFIG_FILE, 'w') as f:
+        json.dump(data, f, indent=True)
+    
 
 
 #初始化------------------------------
@@ -103,16 +117,12 @@ def init_config():
             g_token = data["token"]
     except:
         console.print("[red i]加载token失败...")
+        set_token()
         
     
 init_config()
     
 
-def set_token():
-    token = console.input("[green]请输入你的[red]token[white]:")
-    data = {"token": token}
-    with open(CONFIG_FILE, 'w') as f:
-        json.dump(data, f, indent=True)
 
 @app.command(name="download", help="下载chmlfrp")
 def download():
@@ -124,9 +134,6 @@ def token():
 
 @app.command("config", help="获取隧道配置文件")
 def config():
-    if not g_token:
-        set_token()
-    
     nodes = {}
     try:
         console.print("[yellow]正在获取节点信息...")
