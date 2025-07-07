@@ -4,26 +4,24 @@ use std::{fs, io::Write, path::{Path, PathBuf}};
 use lazy_static::lazy_static;
 use std::collections::{HashMap};
 use serde::{Serialize, Deserialize};
-use inquire::{self, Select, MultiSelect};
+use inquire::{self, MultiSelect, Select, Text};
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use futures_util;
 use zip;
 use flate2::read::GzDecoder; // 引入 GzDecoder，用于解压 gzip
 use tar::Archive;
+use serde_json;
 
 //----------global value
 lazy_static! {
-    static ref CHML_GET_INFO_URL:String = "https://cf-v2.uapis.cn/tunnel".to_string();
-    static ref CHML_GET_CONFIGFILE_URL:String = "https://cf-v2.uapis.cn/tunnel_config".to_string();
-    static ref CHML_GET_ALLNODE_URL: String = "https://cf-v2.uapis.cn/node".to_string(); 
-    static ref CHML_CREATE_NODE_URL: String = "https://cf-v2.uapis.cn/create_tunnel".to_string();
+    static ref CHML_GET_INFO_URL:String = "https://cf-v2.uapis.cn/tunnel".to_string();//参数 token
+    static ref CHML_GET_CONFIGFILE_URL:String = "https://cf-v2.uapis.cn/tunnel_config".to_string();//参数 token node [tunnel_names] 
+    static ref CHML_RM_TUNNEL_URL:String = "https://cf-v1.uapis.cn/api/deletetl.php".to_string(); //参数 token nodeid userid 
+    static ref CHML_GET_ALLNODE_URL: String = "https://cf-v2.uapis.cn/node".to_string(); //参数 None
+    static ref CHML_CREATE_NODE_URL: String = "https://cf-v2.uapis.cn/create_tunnel".to_string(); //
     static ref PROJECT_ROOT_DIR: PathBuf = {
         let dir = std::env::current_dir().expect("无法获取当前工作目录，程序无法启动！");
-        dir
-    };
-    static ref TOKEN_JSON_FILE:PathBuf = {
-        let dir = PROJECT_ROOT_DIR.join("token.js");
         dir
     };
     static ref CHML_APP_INSTALL_URL: HashMap<String, HashMap<String, String>> = {
@@ -60,7 +58,9 @@ lazy_static! {
 #[tokio::main]
 async fn main(){
     let args: Vec<String> = std::env::args().collect();
-    let token:String = get_token(false).await;
+    let config = get_cli_cfg(false).await.expect("");
+    let user_id = config.user_id;
+    let token = config.token;
 
     if args.len() > 1{
         let val = args.get(1).expect("index error");
@@ -70,6 +70,8 @@ async fn main(){
             run_chml().await.expect("chmlfrp启动失败");
         }else if val == "clear" {
             clear_cache();
+        }else if val == "rm" {
+            rm_tunnel(token, user_id).await.expect("删除隧道错误");
         }
     }
     else {
@@ -122,11 +124,18 @@ pub struct ChmlFrpConfigData {
     pub state: String,
 }
 
+//cli的config配置文件
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ChmlCliConfig{
+    pub token: String,
+    pub user_id: String
+}
+
 //----------my_func
 
 //初始化配置
 async fn init_chml() -> Result<(), Box<dyn std::error::Error>>{
-    get_token(true).await;
+    get_cli_cfg(true).await?;
 
     let system_type: &str = std::env::consts::OS;
     let arch_type: &str = std::env::consts::ARCH;
@@ -187,28 +196,26 @@ async fn init_chml() -> Result<(), Box<dyn std::error::Error>>{
     Ok(())
 }
 
-//获取token
-async fn get_token(need_get_token: bool) ->String{
-    let token = if TOKEN_JSON_FILE.exists(){
-        let token:String = std::fs::read_to_string(TOKEN_JSON_FILE.to_str().expect("文件路径转化字符串错误")).expect("读取文件错误");
-
-        let is_reget: bool = if need_get_token{
-            inquire::Confirm::new("token配置已经存在 需要重新获取?").with_default(false).prompt().unwrap_or(false)
-        }else {
-            false
+//获取token和user_id
+async fn get_cli_cfg(reget_flag: bool) ->Result<ChmlCliConfig, Box<dyn std::error::Error>>{
+    let config_file = PROJECT_ROOT_DIR.clone().join("config.js");
+    let new_cfg = if config_file.exists() && !reget_flag{
+        let config:String = std::fs::read_to_string(config_file.to_str().expect("读取配置文件失败"))?;
+        serde_json::from_str::<ChmlCliConfig>(&config)?
+    }else{
+        let token = Text::new("输入你的token:").prompt()?;
+        let user_id = Text::new("输入你的用户id").prompt()?;
+        let new_cfg = ChmlCliConfig{
+            token: token, 
+            user_id: user_id
         };
-        if is_reget{
-            let token:String = inquire::Text::new("请输入你的token:").prompt().expect("输入为空...");
-            std::fs::write(TOKEN_JSON_FILE.to_str().expect("文件路径转字符串失败"), token.clone()).expect("写入token失败");
-            return token;
-        }
-        token
-    } else {
-        let token:String = inquire::Text::new("请输入你的token:").prompt().expect("输入为空...");
-        std::fs::write(TOKEN_JSON_FILE.to_str().expect("文件路径转字符串失败"), token.clone()).expect("写入token失败");
-        token
+
+        let cfg_str = serde_json::to_string_pretty(&new_cfg)?;
+        let mut f = fs::File::create(config_file)?;
+        f.write_all(cfg_str.as_bytes())?;
+        new_cfg
     };
-    token
+    Ok(new_cfg)
 }
 
 //下载文件
@@ -301,7 +308,7 @@ async fn set_chmlfrp_config(token: &str) ->Result<(), Box<dyn std::error::Error>
     }
 
     //选择节点
-    let selected_node_name = Select::new("选择一个节点:", data.keys().cloned().collect()).prompt().expect("选择错误哦");
+    let selected_node_name = Select::new("选择一个节点:", data.keys().cloned().collect()).prompt()?;
     let selected_nodes = data.get(&selected_node_name).expect("获取节点错误");
     
     //获取已选节点的全部隧道信息
@@ -313,7 +320,7 @@ async fn set_chmlfrp_config(token: &str) ->Result<(), Box<dyn std::error::Error>
     }
 
     //选择隧道
-    let selected_tunnel_info = MultiSelect::new("选择一个隧道吧:", tunnel_map.keys().collect()).prompt().expect("隧道选择错误");
+    let selected_tunnel_info = MultiSelect::new("选择一个隧道吧:", tunnel_map.keys().collect()).prompt()?;
     let mut selected_tunnel_names: Vec<String> = Vec::new();
 
     //获取选择的隧道
@@ -332,7 +339,7 @@ async fn set_chmlfrp_config(token: &str) ->Result<(), Box<dyn std::error::Error>
         let config_data = config_data.data;
         
         let frpc_ini_path = PROJECT_ROOT_DIR.clone().join("chmlfrp").join("frpc.ini");
-        fs::write(frpc_ini_path, config_data).expect("写入配置文件失败");
+        fs::write(frpc_ini_path, config_data)?;
         println!("{}", "配置文件写入成功".green());
     }else {
         println!("{}", "获取配置文件失败".red());
@@ -349,6 +356,37 @@ fn clear_cache(){
     else {
         println!("{}", "缓存已经空了哦".yellow());
     }
+}
+
+//删除隧道
+async fn rm_tunnel(token:String, user_id:String) ->Result<(), Box<dyn std::error::Error>>{
+    //获取并且解析节点信息
+    let response_data = get_chmlfrp_node_info(&token).await?;
+    let nodes_info = response_data.data;
+
+    //重新解析需要的隧道信息
+    let mut node_map: HashMap<String, String> = HashMap::new();
+    for node_info in nodes_info{
+        let node_info_str = format!("name: {:<n_w$} prot: {:<p_w$}", node_info.name, node_info.nport, n_w=16, p_w=6);
+        node_map.insert(node_info_str, node_info.id.to_string());
+    }
+
+    //获取选择的隧道信息
+    let selected_info_str = Select::new("选择要删除的节点", node_map.keys().collect()).prompt()?;
+
+    //获取选择的隧道id
+    let selected_tunnel_id = node_map.get(selected_info_str).expect("获取节点错误");
+
+
+
+    let chml_rm_tunnel_url = format!("{}?token={}&nodeid={}&userid={}", CHML_RM_TUNNEL_URL.to_string(), token, selected_tunnel_id, user_id);
+    let response = reqwest::get(chml_rm_tunnel_url).await?;
+    if response.status().is_success(){
+        println!("{}", "节点删除成功".green());
+    }else {
+        println!("{}", "节点删除失败".red());
+    }
+    Ok(())
 }
 
 //启动chmlfrp
