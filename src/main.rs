@@ -9,17 +9,30 @@ use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use futures_util;
 use zip;
-use flate2::read::GzDecoder; // 引入 GzDecoder，用于解压 gzip
+use flate2::read::GzDecoder; //用于解压 gzip
 use tar::Archive;
 use serde_json;
 
 //----------global value
 lazy_static! {
-    static ref CHML_GET_INFO_URL:String = "https://cf-v2.uapis.cn/tunnel".to_string();//参数 token
+    static ref CHML_GET_TUNNEL_INFO_URL:String = "https://cf-v2.uapis.cn/tunnel".to_string();//参数 token
     static ref CHML_GET_CONFIGFILE_URL:String = "https://cf-v2.uapis.cn/tunnel_config".to_string();//参数 token node [tunnel_names] 
     static ref CHML_RM_TUNNEL_URL:String = "https://cf-v1.uapis.cn/api/deletetl.php".to_string(); //参数 token nodeid userid 
     static ref CHML_GET_ALLNODE_URL: String = "https://cf-v2.uapis.cn/node".to_string(); //参数 None
-    static ref CHML_CREATE_NODE_URL: String = "https://cf-v2.uapis.cn/create_tunnel".to_string(); //
+    static ref CHML_CREATE_NODE_URL: String = "https://cf-v2.uapis.cn/create_tunnel".to_string(); //post 
+    static ref CHML_GET_NODE_INFO_URL: String = "https://cf-v2.uapis.cn/nodeinfo".to_string(); //参数 token node
+    /* {
+        "token":"你的token",
+        "tunnelname":"隧道名字",
+        "node":"节点位置名字",
+        "localip":"127.0.0.1",
+        "porttype":"TCP",
+        "localport":19132,
+        "encryption":false 数据加密,
+        "compression":false 数据压缩,
+        "extraparams":"" 额外参数,
+        "remoteport":51859 外部端口} 
+    */
     static ref PROJECT_ROOT_DIR: PathBuf = {
         let dir = std::env::current_dir().expect("无法获取当前工作目录，程序无法启动！");
         dir
@@ -108,11 +121,11 @@ pub struct TunnelData {
 
 //chml全部节点信息的response
 #[derive(Debug, Deserialize, Clone)]
-pub struct ChmlFrpNodeInfo {
+pub struct ChmlFrpTunnelInfo {
     pub msg: String,
-    pub code: u16, // 状态码通常是数字
-    pub data: Vec<TunnelData>, // 关键：'data' 字段是一个包含多个 TunnelData 结构体的向量
-    pub state: String, // "success" 是字符串
+    pub code: u16,
+    pub data: Vec<TunnelData>,
+    pub state: String,
 }
 
 //chml配置文件的response
@@ -287,10 +300,10 @@ fn unpack_tar_gz(tar_gz_file_path: &str, destination_dir: &str) -> Result<(), Bo
 }
 
 //获取node信息
-async fn get_chmlfrp_node_info(token: &str) ->Result<ChmlFrpNodeInfo, Box<dyn std::error::Error>>{
-    let chmlfrp_node_info_url = format!("{}?token={}", CHML_GET_INFO_URL.to_string(), token);
+async fn get_chmlfrp_node_info(token: &str) ->Result<ChmlFrpTunnelInfo, Box<dyn std::error::Error>>{
+    let chmlfrp_node_info_url = format!("{}?token={}", CHML_GET_TUNNEL_INFO_URL.to_string(), token);
     let response = reqwest::get(chmlfrp_node_info_url).await?;
-    let data: ChmlFrpNodeInfo = response.json().await?;
+    let data: ChmlFrpTunnelInfo = response.json().await?;
     Ok(data)
 }
 
