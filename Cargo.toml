@@ -2,6 +2,9 @@
 name = "chmlfrp-cli"
 version = "0.0.1"
 edition = "2024"
+description = "cli tool for chmlfrp"
+repository = "https://github.com/drizzlexlh/chmlfrp-cli"
+
 
 [[bin]]
 name = "chml"
